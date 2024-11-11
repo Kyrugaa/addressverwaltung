@@ -3,8 +3,6 @@ session_start();
 require_once 'includes/dbhandler.php';
 
 $persons = getPersons();
-
-
 ?>
 
 <!DOCTYPE html>
@@ -22,6 +20,15 @@ $persons = getPersons();
                 <h1 class="display-4">Adressverwaltung</h1><hr>
                 <form action="includes/safePerson.php" method="POST">
                     <h6 class="display-6">Person</h6>
+                    <?php
+                        if (isset($_GET['error'])) {
+                            echo "<div class='alert alert-danger'>";
+                            foreach ($_GET['error'] as $error) {
+                                echo htmlspecialchars($error) . "<br>";
+                            }
+                            echo "</div>";
+                        }
+                    ?>
                     <div class="mb-3">
                         <label for="salutation" class="form-label">Anrede</label>
                         <select class="form-select" id="salutation" name="salutation" required>
