@@ -85,6 +85,7 @@ $persons = getPersons();
             <div class="col-md-6">
                 <h1 class="display-4">Gespeicherte Adressen</h1><hr>
                 <ul class="list-group">
+                    <input type="text" class="search form-control" placeholder="Suchen..." style="margin-bottom: 1.9em; margin-top: 1.2em;">
                     <?php foreach ($persons as $person): ?>
                         <li class="list-group-item">
                         <h5><?php echo htmlspecialchars($person['firstname'] . ' ' . $person['lastname']); ?></h5>
@@ -101,7 +102,9 @@ $persons = getPersons();
                             <p>Strasse: <?php echo htmlspecialchars($person['street'] . ' ' . $person['house_number']) ?></p>
                             <p>PLZ: <?php echo htmlspecialchars($person['postal_code']) ?></p>
                             <p>Stadt: <?php echo htmlspecialchars($person['city']) ?></p>
-
+                            
+                            <a href="editPerson.php?id=<?php echo $person['id'] + 1; ?>" class="btn btn-primary">Bearbeiten</a>
+                            <a href="includes/deletePerson.php?id=<?php echo $person['id']; ?>" class="btn btn-danger">Löschen</a>
 
                         </li>
                     <?php endforeach; ?>
