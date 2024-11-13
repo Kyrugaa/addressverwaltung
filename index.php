@@ -104,7 +104,7 @@ $persons = getPersons();
                             <p>Stadt: <?php echo htmlspecialchars($person['city']) ?></p>
                             
                             <a href="editPerson.php?id=<?php echo $person['id'] + 1; ?>" class="btn btn-primary">Bearbeiten</a>
-                            <a href="includes/deletePerson.php?id=<?php echo $person['id']; ?>" class="btn btn-danger">Löschen</a>
+                            <a href="includes/deletePerson.php?id=<?php echo $person['id'] + 1; ?>" class="btn btn-danger">Löschen</a>
 
                         </li>
                     <?php endforeach; ?>

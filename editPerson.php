@@ -17,10 +17,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $postal_code = $_POST['postal_code'];
     $city = $_POST['city'];
 
-    // Debug statement to print form data
-    echo "Form Data: ";
-    var_dump($_POST);
-
     updatePerson($person_id, $salutation, $firstname, $lastname, $email, $mobile_number, $phone_number, $homepage, $street, $house_number, $postal_code, $city);
 
     header("Location: index.php");
@@ -33,9 +29,7 @@ if(!isset($_GET['id'])){
 }
 
 $person_id = $_GET['id'];
-
 $person = getSpecificPerson($person_id);
-var_dump($person);
 
 ?>
 

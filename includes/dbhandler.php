@@ -114,3 +114,26 @@ function updatePerson($person_id, $salutation, $firstname, $lastname, $email, $m
         close_connection($conn);
     }
 }
+
+function deletePerson($person_id) {
+    try {
+        $conn = getConnection();
+        
+        // Delete from addresses table
+        $sql = "DELETE FROM addresses WHERE person_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $person_id);
+        $stmt->execute();
+        
+        // Delete from persons table
+        $sql = "DELETE FROM persons WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $person_id);
+        $stmt->execute();
+    } catch (Exception $e) {
+        error_log("Error: " . $e->getMessage());
+        throw $e;
+    } finally {
+        close_connection($conn);
+    }
+}
