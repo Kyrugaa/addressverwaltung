@@ -12,10 +12,12 @@ if (isset($_POST['submit-person'])) {
         'mobile_number' => $_POST['mobile_number'],
         'phone_number' => $_POST['phone_number'],
         'homepage' => $_POST['homepage'],
+        'addresses' => [
         'street' => $_POST['street'],
         'house_number' => $_POST['house_number'],
         'postal_code' => $_POST['postal_code'],
         'city' => $_POST['city']
+        ]
     ];
 
     $errors = PersonValidator::validate($data);
@@ -27,7 +29,7 @@ if (isset($_POST['submit-person'])) {
     }
 
     try {
-        safePerson($data['salutation'], $data['firstname'], $data['lastname'], $data['email'], $data['mobile_number'], $data['phone_number'], $data['homepage'], $data['street'], $data['house_number'], $data['postal_code'], $data['city']);
+        safePerson($data['salutation'], $data['firstname'], $data['lastname'], $data['email'], $data['mobile_number'], $data['phone_number'], $data['homepage'], $data['addresses']);
     } catch (Exception $e) {
         header("Location: ../index.php?error=sqlerror");
         exit();

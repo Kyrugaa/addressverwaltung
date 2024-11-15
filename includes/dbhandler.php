@@ -25,22 +25,32 @@ function close_connection ($conn){
     }
 }
 
-function safePerson($salutation, $firstname, $lastname, $email, $mobile_number, $phone_number, $homepage, $street, $house_number, $postal_code, $city){
-    
-    try{
-    $conn = getConnection();
-    $sql = "INSERT INTO persons(salutation, firstname, lastname, email, mobile_number, phone_number, homepage) VALUES (?, ?, ?, ?, ?, ?, ?)";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssssss", $salutation, $firstname, $lastname, $email, $mobile_number, $phone_number, $homepage);
-    $stmt->execute();
+function safePerson($salutation, $firstname, $lastname, $email, $mobile_number, $phone_number, $homepage, $addresses){
+    try {
+        $conn = getConnection();
+        $conn->begin_transaction();
 
-    $person_id = $conn->insert_id;
+        $sql = "INSERT INTO persons(salutation, firstname, lastname, email, mobile_number, phone_number, homepage) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("sssssss", $salutation, $firstname, $lastname, $email, $mobile_number, $phone_number, $homepage);
+        $stmt->execute();
 
-    $sql = "INSERT INTO addresses(person_id, street, house_number, postal_code, city) VALUES (?, ?, ?, ?, ?)";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("issss", $person_id, $street, $house_number, $postal_code, $city);
-    $stmt->execute();
+        $person_id = $conn->insert_id;
+
+        $sql = "INSERT INTO addresses(person_id, street, house_number, postal_code, city) VALUES (?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+
+        foreach ($addresses['street'] as $index => $street) {
+            $house_number = $addresses['house_number'][$index];
+            $postal_code = $addresses['postal_code'][$index];
+            $city = $addresses['city'][$index];
+            $stmt->bind_param("issss", $person_id, $street, $house_number, $postal_code, $city);
+            $stmt->execute();
+        }
+
+        $conn->commit();
     } catch (Exception $e) {
+        $conn->rollback();
         error_log("Error: " . $e->getMessage());
         throw $e;
     } finally {

@@ -1,9 +1,11 @@
 <?php
+
 class PersonValidator {
     public static function validate($data) {
         $errors = [];
 
-        if (empty($data['salutation']) || empty($data['firstname']) || empty($data['lastname']) || empty($data['email']) || empty($data['mobile_number']) || empty($data['phone_number']) || empty($data['street']) || empty($data['house_number']) || empty($data['postal_code']) || empty($data['city'])) {
+        // Validate person fields
+        if (empty($data['salutation']) || empty($data['firstname']) || empty($data['lastname']) || empty($data['email']) || empty($data['mobile_number']) || empty($data['phone_number'])) {
             $errors['emptyfields'] = 'Bitte alle Felder ausfüllen.';
         }
         if (!preg_match("/^[a-zA-Z]*$/", $data['firstname']) || !preg_match("/^[a-zA-Z]*$/", $data['lastname'])) {
@@ -27,11 +29,18 @@ class PersonValidator {
         if (!preg_match("/^[0-9]*$/", $data['mobile_number']) || !preg_match("/^[0-9]*$/", $data['phone_number'])) {
             $errors['invalidnumber'] = 'Ungültige Nummer.';
         }
-        if (!preg_match("/^[0-9]*$/", $data['postal_code'])) {
-            $errors['invalidpostalcode'] = 'Ungültige Postleitzahl.';
-        }
-        if (!preg_match("/^[a-zA-Z]*$/", $data['city'])) {
-            $errors['invalidcity'] = 'Ungültige Stadt.';
+
+        // Validate address fields
+        foreach ($data['addresses']['street'] as $index => $street) {
+            if (empty($street) || empty($data['addresses']['house_number'][$index]) || empty($data['addresses']['postal_code'][$index]) || empty($data['addresses']['city'][$index])) {
+                $errors['emptyaddressfields'] = 'Bitte alle Adressfelder ausfüllen.';
+            }
+            if (!preg_match("/^[0-9]*$/", $data['addresses']['postal_code'][$index])) {
+                $errors['invalidpostalcode'] = 'Ungültige Postleitzahl.';
+            }
+            if (!preg_match("/^[a-zA-Z]*$/", $data['addresses']['city'][$index])) {
+                $errors['invalidcity'] = 'Ungültige Stadt.';
+            }
         }
 
         return $errors;

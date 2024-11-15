@@ -12,6 +12,7 @@ $persons = getPersons();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Adressverwaltung</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
     <div class="container mt-5">
@@ -61,22 +62,27 @@ $persons = getPersons();
                         <input type="text" class="form-control" id="homepage" name="homepage">
                     </div>
                     <h6 class="display-6">Adresse</h6>
-                    <div class="mb-3">
-                        <label for="street" class="form-label">Straße</label>
-                        <input type="text" class="form-control" id="street" name="street" required>
+                    <div id="address-container">
+                        <div class="address-group">
+                            <div class="mb-3">
+                                <label for="street" class="form-label">Straße</label>
+                                <input type="text" class="form-control" id="street" name="street[]" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="house_number" class="form-label">Hausnummer</label>
+                                <input type="text" class="form-control" id="house_number" name="house_number[]" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="postal_code" class="form-label">PLZ</label>
+                                <input type="text" class="form-control" id="postal_code" name="postal_code[]" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="city" class="form-label">Stadt</label>
+                                <input type="text" class="form-control" id="city" name="city[]" required>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="house_number" class="form-label">Hausnummer</label>
-                        <input type="text" class="form-control" id="house_number" name="house_number" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="postal_code" class="form-label">PLZ</label>
-                        <input type="text" class="form-control" id="postal_code" name="postal_code" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="city" class="form-label">Stadt</label>
-                        <input type="text" class="form-control" id="city" name="city" required>
-                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="addAddress()">Weitere Adresse hinzufügen</button>
                     <button type="submit" class="btn btn-primary" name="submit-person">Speichern</button>
                 </form>
             </div>
@@ -105,7 +111,6 @@ $persons = getPersons();
                             
                             <a href="editPerson.php?id=<?php echo $person['id'] + 1; ?>" class="btn btn-primary">Bearbeiten</a>
                             <a href="includes/deletePerson.php?id=<?php echo $person['id'] + 1; ?>" class="btn btn-danger">Löschen</a>
-
                         </li>
                     <?php endforeach; ?>
                 </ul>
@@ -114,5 +119,32 @@ $persons = getPersons();
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+        function addAddress(){
+            const addressContainer = document.getElementById('address-container');
+            const addressGroup = document.createElement('div');
+            addressGroup.classList.add('address-group');
+            addressGroup.innerHTML = `
+            <h6 class="display-6">Weitere Adresse <i class="fa fa-remove" style="font-size:26px;color:red;"></i></h6>
+            <div class="mb-3">
+                <label for="street" class="form-label">Straße</label>
+                <input type="text" class="form-control" id="street" name="street[]" required>
+            </div>
+                <div class="mb-3">
+                <label for="house_number" class="form-label">Hausnummer</label>
+                <input type="text" class="form-control" id="house_number" name="house_number[]" required>
+            </div>
+                <div class="mb-3">
+                <label for="postal_code" class="form-label">PLZ</label>
+                <input type="text" class="form-control" id="postal_code" name="postal_code[]" required>
+            </div>
+                <div class="mb-3">
+                <label for="city" class="form-label">Stadt</label>
+                <input type="text" class="form-control" id="city" name="city[]" required>
+            </div>
+                `;
+                addressContainer.appendChild(addressGroup);
+        }
+    </script>
 </body>
 </html>
