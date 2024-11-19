@@ -147,3 +147,22 @@ function deletePerson($person_id) {
         close_connection($conn);
     }
 }
+
+function searchPerson($searchedPerson){
+    $conn = getConnection();
+
+    $sql = "SELECT * FROM persons WHERE firstname LIKE ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $searchedPerson);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $persons = array();
+    if ($result->num_rows > 0){
+        while ($row = $result->fetch_assoc()){
+            $persons[] = $row;
+        }
+    }
+    close_connection($conn);
+    echo json_encode($persons);
+    return $persons;
+}

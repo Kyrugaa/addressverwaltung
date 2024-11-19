@@ -91,7 +91,9 @@ $persons = getPersons();
             <div class="col-md-6">
                 <h1 class="display-4">Gespeicherte Adressen</h1><hr>
                 <ul class="list-group">
-                    <input type="text" class="search form-control" placeholder="Suchen..." style="margin-bottom: 1.9em; margin-top: 1.2em;">
+                    <form action="includes/searchPerson.php" method="POST">
+                        <input type="text" class="search form-control" placeholder="Suchen..." name="searchedPerson" style="margin-bottom: 1.9em; margin-top: 1.2em;">
+                    </form>
                     <?php foreach ($persons as $person): ?>
                         <li class="list-group-item">
                         <h5><?php echo htmlspecialchars($person['firstname'] . ' ' . $person['lastname']); ?></h5>
