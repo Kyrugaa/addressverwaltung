@@ -164,5 +164,6 @@ function searchPerson($searchedPerson){
     }
     close_connection($conn);
     echo json_encode($persons);
+    echo "<br>";
     return $persons;
 }

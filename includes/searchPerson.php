@@ -11,4 +11,5 @@ $searchedPerson = $_POST['searchedPerson'];
 
 searchPerson($searchedPerson);
 
-var_dump($searchedPerson);
+echo $searchedPerson;
+
