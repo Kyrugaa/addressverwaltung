@@ -3,6 +3,8 @@ session_start();
 require_once 'dbhandler.php';
 require_once '../classes/PersonValidator.php';
 
+var_dump($_POST);
+
 if (isset($_POST['submit-person'])) {
     $data = [
         'salutation' => $_POST['salutation'],
@@ -24,6 +26,7 @@ if (isset($_POST['submit-person'])) {
 
     if (!empty($errors)) {
         $query = http_build_query(['error' => $errors]);
+
         header("Location: ../index.php?$query");
         exit();
     }

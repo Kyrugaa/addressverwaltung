@@ -38,7 +38,7 @@ class PersonValidator {
             if (!preg_match("/^[0-9]*$/", $data['addresses']['postal_code'][$index])) {
                 $errors['invalidpostalcode'] = 'Ungültige Postleitzahl.';
             }
-            if (!preg_match("/^[a-zA-Z]*$/", $data['addresses']['city'][$index])) {
+            if (!preg_match("/^[a-zA-ZäöüÄÖÜß\s]*$/", $data['addresses']['city'][$index])) {
                 $errors['invalidcity'] = 'Ungültige Stadt.';
             }
         }

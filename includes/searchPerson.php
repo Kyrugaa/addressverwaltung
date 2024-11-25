@@ -8,8 +8,9 @@ if(!isset($_POST['searchedPerson'])){
 }
 
 $searchedPerson = $_POST['searchedPerson'];
+$sortOrder = $_POST['sortOrder'];
 
-searchPerson($searchedPerson);
+$results = searchPerson($searchedPerson, $sortOrder);
 
-echo $searchedPerson;
-
+$_SESSION['searchResults'] = $results;
+header("Location: ../index.php");

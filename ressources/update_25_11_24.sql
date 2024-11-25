@@ -1,0 +1,1 @@
+ALTER TABLE addresses CHANGE COLUMN person_id personId INT; 

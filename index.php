@@ -3,6 +3,10 @@ session_start();
 require_once 'includes/dbhandler.php';
 
 $persons = getPersons();
+$adress = getAdresses();
+var_dump($persons);
+$searchResults = isset($_SESSION['searchResults']) ? $_SESSION['searchResults'] : null;
+unset($_SESSION['searchResults']);
 ?>
 
 <!DOCTYPE html>
@@ -91,30 +95,58 @@ $persons = getPersons();
             <div class="col-md-6">
                 <h1 class="display-4">Gespeicherte Adressen</h1><hr>
                 <ul class="list-group">
-                    <form action="includes/searchPerson.php" method="POST">
-                        <input type="text" class="search form-control" placeholder="Suchen..." name="searchedPerson" style="margin-bottom: 1.9em; margin-top: 1.2em;">
-                    </form>
-                    <?php foreach ($persons as $person): ?>
-                        <li class="list-group-item">
-                        <h5><?php echo htmlspecialchars($person['firstname'] . ' ' . $person['lastname']); ?></h5>
-                        <p>Anrede: <?php echo htmlspecialchars($person['salutation']); ?></p>
-                            <p>Telefonnummer: <?php echo htmlspecialchars($person['phone_number']); ?></p>
-                            <p>Handynummer: <?php echo htmlspecialchars($person['mobile_number']) ?></p>
-                            <p>E-Mail: <?php echo htmlspecialchars($person['email']) ?></p>
-                            <?php 
-                            if(!empty($person['homepage'])){ ?>
-                            <p>Homepage: <?php echo htmlspecialchars($person['homepage']); ?></p>
-                            <?php
-                            }
-                            ?>
-                            <p>Strasse: <?php echo htmlspecialchars($person['street'] . ' ' . $person['house_number']) ?></p>
-                            <p>PLZ: <?php echo htmlspecialchars($person['postal_code']) ?></p>
-                            <p>Stadt: <?php echo htmlspecialchars($person['city']) ?></p>
-                            
-                            <a href="editPerson.php?id=<?php echo $person['id'] + 1; ?>" class="btn btn-primary">Bearbeiten</a>
-                            <a href="includes/deletePerson.php?id=<?php echo $person['id'] + 1; ?>" class="btn btn-danger">Löschen</a>
-                        </li>
-                    <?php endforeach; ?>
+                <form action="includes/searchPerson.php" method="POST">
+                    <input type="text" class="search form-control" placeholder="Suchen..." name="searchedPerson" style="margin-bottom: 1.9em; margin-top: 1.2em;">
+                        <select class="form-select" name="sortOrder" style="margin-bottom: 1em;">
+                            <option value="firstname_asc">Vorname (A-Z)</option>
+                            <option value="firstname_desc">Vorname (Z-A)</option>
+                            <option value="lastname_asc">Nachname (A-Z)</option>
+                            <option value="lastname_desc">Nachname (Z-A)</option>
+                        </select>
+                    <button type="submit" class="btn btn-primary" style="margin-bottom: 0.5em;">Suchen</button>
+                </form>
+                    <?php 
+                        if ($searchResults) {
+                            foreach ($searchResults as $returnedPerson) { ?>
+                                <li class="list-group-item">
+                                    <h5><?php echo htmlspecialchars($returnedPerson['firstname'] . ' ' . $returnedPerson['lastname']); ?></h5>
+                                    <p>Anrede: <?php echo htmlspecialchars($returnedPerson['salutation']); ?></p>
+                                    <p>Telefonnummer: <?php echo htmlspecialchars($returnedPerson['phone_number']); ?></p>
+                                    <p>Handynummer: <?php echo htmlspecialchars($returnedPerson['mobile_number']) ?></p>
+                                    <p>E-Mail: <?php echo htmlspecialchars($returnedPerson['email']) ?></p>
+                                    <?php if(!empty($returnedPerson['homepage'])) { ?>
+                                        <p>Homepage: <?php echo htmlspecialchars($returnedPerson['homepage']); ?></p>
+                                    <?php } ?>
+                                    <p>Strasse: <?php echo htmlspecialchars($returnedPerson['street'] . ' ' . $returnedPerson['house_number']) ?></p>
+                                    <p>PLZ: <?php echo htmlspecialchars($returnedPerson['postal_code']) ?></p>
+                                    <p>Stadt: <?php echo htmlspecialchars($returnedPerson['city']) ?></p>
+                                    <a href="editPerson.php?id=<?php echo $returnedPerson['id']; ?>" class="btn btn-primary">Bearbeiten</a>
+                                    <a href="includes/deletePerson.php?id=<?php echo $returnedPerson['id']; ?>" class="btn btn-danger">Löschen</a>
+                                </li>
+                            <?php }
+                        } else {
+                            foreach ($persons as $person) { ?>
+                                <li class="list-group-item">
+                                    <h5>ID: <?php echo $person['id'] ?></h5>
+                                    <h5>Adress-Id <?php echo $adress['id'] ?></h5>
+                                    <h5><?php echo htmlspecialchars($person['firstname'] . ' ' . $person['lastname']); ?></h5>
+                                    <p>Anrede: <?php echo htmlspecialchars($person['salutation']); ?></p>
+                                    <p>Telefonnummer: <?php echo htmlspecialchars($person['phone_number']); ?></p>
+                                    <p>Handynummer: <?php echo htmlspecialchars($person['mobile_number']) ?></p>
+                                    <p>E-Mail: <?php echo htmlspecialchars($person['email']) ?></p>
+                                    <?php if(!empty($person['homepage'])) { ?>
+                                        <p>Homepage: <?php echo htmlspecialchars($person['homepage']); ?></p>
+                                    <?php } ?>
+                                    <p>Strasse: <?php echo htmlspecialchars($person['street'] . ' ' . $person['house_number']) ?></p>
+                                    <p>PLZ: <?php echo htmlspecialchars($person['postal_code']) ?></p>
+                                    <p>Stadt: <?php echo htmlspecialchars($person['city']) ?></p>
+
+                                    <a href="edit.php?id=<?php echo $person['id']; ?>" name="personId" class="btn btn-primary">Bearbeiten</a>
+                                    <a href="includes/deletePerson.php?id=<?php echo $person['id']; ?>" class="btn btn-danger">Löschen</a>
+                                </li>
+                            <?php }
+                        }
+                    ?>
                 </ul>
             </div>
         </div>

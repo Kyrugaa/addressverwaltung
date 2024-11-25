@@ -37,7 +37,7 @@ function safePerson($salutation, $firstname, $lastname, $email, $mobile_number, 
 
         $person_id = $conn->insert_id;
 
-        $sql = "INSERT INTO addresses(person_id, street, house_number, postal_code, city) VALUES (?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO addresses(personId, street, house_number, postal_code, city) VALUES (?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
 
         foreach ($addresses['street'] as $index => $street) {
@@ -62,7 +62,7 @@ function safePerson($salutation, $firstname, $lastname, $email, $mobile_number, 
 
 function getPersons(){
     $conn = getConnection();
-    $sql = "SELECT * FROM persons INNER JOIN addresses ON persons.id = addresses.person_id";
+    $sql = "SELECT * FROM addresses INNER JOIN persons ON persons.id = addresses.personId";
     $result = $conn->query($sql);
     $persons = array();
     if ($result->num_rows > 0){
@@ -80,7 +80,7 @@ function getSpecificPerson($person_id) {
         die("Connection failed: " . $conn->connect_error);
     }
 
-    $sql = "SELECT * FROM persons INNER JOIN addresses ON persons.id = addresses.person_id WHERE persons.id = ?";
+    $sql = "SELECT * FROM persons INNER JOIN addresses ON persons.id = addresses.personId WHERE persons.id = ?";
     $stmt = $conn->prepare($sql);
     if (!$stmt) {
         die("Prepare failed: " . $conn->error);
@@ -90,32 +90,26 @@ function getSpecificPerson($person_id) {
     $stmt->execute();
     $result = $stmt->get_result();
     if ($result->num_rows === 0) {
-        echo "No records found for person_id: " . htmlspecialchars($person_id);
         return null;
     }
 
     $person = $result->fetch_assoc();
-    if (!$person) {
-        echo "Fetch failed.";
-        return null;
-    }
-
     close_connection($conn);
     return $person;
 }
 
-function updatePerson($person_id, $salutation, $firstname, $lastname, $email, $mobile_number, $phone_number, $homepage, $street, $house_number, $postal_code, $city) {
+function updatePerson($personId, $salutation, $firstname, $lastname, $email, $mobile_number, $phone_number, $homepage, $street, $house_number, $postal_code, $city) {
     try {
         $conn = getConnection();
         
         $sql = "UPDATE persons SET salutation = ?, firstname = ?, lastname = ?, email = ?, mobile_number = ?, phone_number = ?, homepage = ? WHERE id = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssssssi", $salutation, $firstname, $lastname, $email, $mobile_number, $phone_number, $homepage, $person_id);
+        $stmt->bind_param("sssssssi", $salutation, $firstname, $lastname, $email, $mobile_number, $phone_number, $homepage, $personId);
         $stmt->execute();
         
-        $sql = "UPDATE addresses SET street = ?, house_number = ?, postal_code = ?, city = ? WHERE person_id = ?";
+        $sql = "UPDATE addresses SET street = ?, house_number = ?, postal_code = ?, city = ? WHERE personId = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssssi", $street, $house_number, $postal_code, $city, $person_id);
+        $stmt->bind_param("ssssi", $street, $house_number, $postal_code, $city, $personId);
         $stmt->execute();
     } catch (Exception $e) {
         error_log("Error: " . $e->getMessage());
@@ -130,7 +124,7 @@ function deletePerson($person_id) {
         $conn = getConnection();
         
         // Delete from addresses table
-        $sql = "DELETE FROM addresses WHERE person_id = ?";
+        $sql = "DELETE FROM addresses WHERE personId = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $person_id);
         $stmt->execute();
@@ -148,12 +142,30 @@ function deletePerson($person_id) {
     }
 }
 
-function searchPerson($searchedPerson){
+function searchPerson($searchedPerson, $sortOrder){
     $conn = getConnection();
 
-    $sql = "SELECT * FROM persons WHERE firstname LIKE ?";
+    $orderBy = "firstname ASC";
+    switch ($sortOrder) {
+        case 'firstname_desc':
+            $orderBy = "firstname DESC";
+            break;
+        case 'lastname_asc':
+            $orderBy = "lastname ASC";
+            break;
+        case 'lastname_desc':
+            $orderBy = "lastname DESC";
+            break;
+    }
+
+    $sql = "SELECT persons.*, addresses.* 
+            FROM persons 
+            INNER JOIN addresses ON persons.id = addresses.personId 
+            WHERE persons.firstname LIKE ? 
+            ORDER BY $orderBy";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $searchedPerson);
+    $searchTerm = "%$searchedPerson%";
+    $stmt->bind_param("s", $searchTerm);
     $stmt->execute();
     $result = $stmt->get_result();
     $persons = array();
@@ -163,7 +175,22 @@ function searchPerson($searchedPerson){
         }
     }
     close_connection($conn);
-    echo json_encode($persons);
-    echo "<br>";
     return $persons;
+}
+
+function getAdresses(){
+    $conn = getConnection();
+    $sql = "SELECT * FROM addresses WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $personId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $addresses = array();
+    if ($result->num_rows > 0){
+        while ($row = $result->fetch_assoc()){
+            $addresses[] = $row;
+        }
+    }
+    close_connection($conn);
+    return $addresses;
 }

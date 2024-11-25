@@ -4,7 +4,7 @@ session_start();
 require_once 'includes/dbhandler.php';
 
 if($_SERVER['REQUEST_METHOD'] == 'POST'){
-    $person_id = $_POST['person_id'];
+    $personId = $_POST['personId'];
     $salutation = $_POST['salutation'];
     $firstname = $_POST['firstname'];
     $lastname = $_POST['lastname'];
@@ -17,7 +17,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $postal_code = $_POST['postal_code'];
     $city = $_POST['city'];
 
-    updatePerson($person_id, $salutation, $firstname, $lastname, $email, $mobile_number, $phone_number, $homepage, $street, $house_number, $postal_code, $city);
+    updatePerson($personId, $salutation, $firstname, $lastname, $email, $mobile_number, $phone_number, $homepage, $street, $house_number, $postal_code, $city);
 
     header("Location: index.php");
     exit();
@@ -30,7 +30,12 @@ if(!isset($_GET['id'])){
 
 $person_id = $_GET['id'];
 $person = getSpecificPerson($person_id);
+// var_dump($person);
 
+if (!$person) {
+    echo "No records found for personId: " . htmlspecialchars($person_id);
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -46,8 +51,8 @@ $person = getSpecificPerson($person_id);
         <div class="row">
             <div class="col-md-6">
                 <h1 class="display-4">Bearbeiten</h1><hr>
-                <form action="editPerson.php" method="POST">
-                    <input type="hidden" name="person_id" value="<?php echo $person_id; ?>">
+                <form action="edit.php" method="POST">
+                    <input type="hidden" name="personId" value="<?php echo htmlspecialchars($person_id); ?>">
                     <div class="mb-3">
                         <label for="salutation" class="form-label">Anrede</label>
                         <select class="form-select" id="salutation" name="salutation" required>
@@ -57,44 +62,43 @@ $person = getSpecificPerson($person_id);
                     </div>
                     <div class="mb-3">
                         <label for="firstname" class="form-label">Vorname</label>
-                        <input type="text" class="form-control" id="firstname" name="firstname" value="<?php echo $person['firstname']; ?>" required>
+                        <input type="text" class="form-control" id="firstname" name="firstname" value="<?php echo htmlspecialchars($person['firstname']); ?>" required>
                     </div>
                     <div class="mb-3">
                         <label for="lastname" class="form-label">Nachname</label>
-                        <input type="text" class="form-control" id="lastname" name="lastname" value="<?php echo $person['lastname']; ?>" required>
+                        <input type="text" class="form-control" id="lastname" name="lastname" value="<?php echo htmlspecialchars($person['lastname']); ?>" required>
                     </div>
                     <div class="mb-3">
                         <label for="email" class="form-label">E-Mail</label>
-                        <input type="email" class="form-control" id="email" name="email" value="<?php echo $person['email']; ?>" required>
+                        <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($person['email']); ?>" required>
                     </div>
                     <div class="mb-3">
                         <label for="mobile_number" class="form-label">Handynummer</label>
-                        <input type="text" class="form-control" id="mobile_number" name="mobile_number" value="<?php echo $person['mobile_number']; ?>" required>
+                        <input type="text" class="form-control" id="mobile_number" name="mobile_number" value="<?php echo htmlspecialchars($person['mobile_number']); ?>" required>
                     </div>
                     <div class="mb-3">
                         <label for="phone_number" class="form-label">Telefonnummer</label>
-                        <input type="text" class="form-control" id="phone_number" name="phone_number" value="<?php echo $person['phone_number']; ?>" required>
-                    </div>
+                        <input type="text" class="form-control" id="phone_number" name="phone_number" value="<?php echo htmlspecialchars($person['phone_number']); ?>" required></div>
                     <div class="mb-3">
                         <label for="homepage" class="form-label">Homepage</label>
-                        <input type="text" class="form-control" id="homepage" name="homepage" value="<?php echo $person['homepage']; ?>">
+                        <input type="text" class="form-control" id="homepage" name="homepage" value="<?php echo htmlspecialchars($person['homepage']); ?>">
                     </div>
                     <h6 class="display-6">Adresse</h6>
                     <div class="mb-3">
                         <label for="street" class="form-label">Straße</label>
-                        <input type="text" class="form-control" id="street" name="street" value="<?php echo $person['street']; ?>" required>
+                        <input type="text" class="form-control" id="street" name="street" value="<?php echo htmlspecialchars($person['street']); ?>" required>
                     </div>
                     <div class="mb-3">
                         <label for="house_number" class="form-label">Hausnummer</label>
-                        <input type="text" class="form-control" id="house_number" name="house_number" value="<?php echo $person['house_number']; ?>" required>
+                        <input type="text" class="form-control" id="house_number" name="house_number" value="<?php echo htmlspecialchars($person['house_number']); ?>" required>
                     </div>
                     <div class="mb-3">
                         <label for="postal_code" class="form-label">Postleitzahl</label>
-                        <input type="text" class="form-control" id="postal_code" name="postal_code" value="<?php echo $person['postal_code']; ?>" required>
+                        <input type="text" class="form-control" id="postal_code" name="postal_code" value="<?php echo htmlspecialchars($person['postal_code']); ?>" required>
                     </div>
                     <div class="mb-3">
                         <label for="city" class="form-label">Stadt</label>
-                        <input type="text" class="form-control" id="city" name="city" value="<?php echo $person['city']; ?>" required>
+                        <input type="text" class="form-control" id="city" name="city" value="<?php echo htmlspecialchars($person['city']); ?>" required>
                     </div>
                     <button type="submit" class="btn btn-primary" name="submit-person">Speichern</button>
                 </form>
@@ -103,4 +107,3 @@ $person = getSpecificPerson($person_id);
     </div>
 </body>
 </html>
-
