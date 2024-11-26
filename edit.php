@@ -12,12 +12,21 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $mobile_number = $_POST['mobile_number'];
     $phone_number = $_POST['phone_number'];
     $homepage = $_POST['homepage'];
-    $street = $_POST['street'];
-    $house_number = $_POST['house_number'];
-    $postal_code = $_POST['postal_code'];
-    $city = $_POST['city'];
+    $address_ids = $_POST['address_id'];
+    $streets = $_POST['street'];
+    $house_numbers = $_POST['house_number'];
+    $postal_codes = $_POST['postal_code'];
+    $cities = $_POST['city'];
 
-    updatePerson($personId, $salutation, $firstname, $lastname, $email, $mobile_number, $phone_number, $homepage, $street, $house_number, $postal_code, $city);
+    updatePerson($personId, $salutation, $firstname, $lastname, $email, $mobile_number, $phone_number, $homepage);
+
+    foreach ($address_ids as $index => $address_id) {
+        $street = $streets[$index];
+        $house_number = $house_numbers[$index];
+        $postal_code = $postal_codes[$index];
+        $city = $cities[$index];
+        updateAddress($address_id, $street, $house_number, $postal_code, $city);
+    }
 
     header("Location: index.php");
     exit();
@@ -30,7 +39,7 @@ if(!isset($_GET['id'])){
 
 $person_id = $_GET['id'];
 $person = getSpecificPerson($person_id);
-// var_dump($person);
+$addresses = getAddressesByPersonId($person_id);
 
 if (!$person) {
     echo "No records found for personId: " . htmlspecialchars($person_id);
@@ -83,23 +92,28 @@ if (!$person) {
                         <label for="homepage" class="form-label">Homepage</label>
                         <input type="text" class="form-control" id="homepage" name="homepage" value="<?php echo htmlspecialchars($person['homepage']); ?>">
                     </div>
-                    <h6 class="display-6">Adresse</h6>
-                    <div class="mb-3">
-                        <label for="street" class="form-label">Straße</label>
-                        <input type="text" class="form-control" id="street" name="street" value="<?php echo htmlspecialchars($person['street']); ?>" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="house_number" class="form-label">Hausnummer</label>
-                        <input type="text" class="form-control" id="house_number" name="house_number" value="<?php echo htmlspecialchars($person['house_number']); ?>" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="postal_code" class="form-label">Postleitzahl</label>
-                        <input type="text" class="form-control" id="postal_code" name="postal_code" value="<?php echo htmlspecialchars($person['postal_code']); ?>" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="city" class="form-label">Stadt</label>
-                        <input type="text" class="form-control" id="city" name="city" value="<?php echo htmlspecialchars($person['city']); ?>" required>
-                    </div>
+                    <h6 class="display-6">Adressen</h6>
+                    <?php foreach ($addresses as $index => $address) { ?>
+                        <div class="address-group">
+                            <input type="hidden" name="address_id[]" value="<?php echo htmlspecialchars($address['id']); ?>">
+                            <div class="mb-3">
+                                <label for="street" class="form-label">Straße</label>
+                                <input type="text" class="form-control" id="street" name="street[]" value="<?php echo htmlspecialchars($address['street']); ?>" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="house_number" class="form-label">Hausnummer</label>
+                                <input type="text" class="form-control" id="house_number" name="house_number[]" value="<?php echo htmlspecialchars($address['house_number']); ?>" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="postal_code" class="form-label">Postleitzahl</label>
+                                <input type="text" class="form-control" id="postal_code" name="postal_code[]" value="<?php echo htmlspecialchars($address['postal_code']); ?>" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="city" class="form-label">Stadt</label>
+                                <input type="text" class="form-control" id="city" name="city[]" value="<?php echo htmlspecialchars($address['city']); ?>" required>
+                            </div>
+                        </div><hr><br>
+                    <?php } ?>
                     <button type="submit" class="btn btn-primary" name="submit-person">Speichern</button>
                 </form>
             </div>

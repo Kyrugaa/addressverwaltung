@@ -62,16 +62,38 @@ function safePerson($salutation, $firstname, $lastname, $email, $mobile_number, 
 
 function getPersons(){
     $conn = getConnection();
-    $sql = "SELECT * FROM addresses INNER JOIN persons ON persons.id = addresses.personId";
+    $sql = "SELECT persons.*, addresses.id as address_id, addresses.street, addresses.house_number, addresses.postal_code, addresses.city 
+            FROM persons 
+            INNER JOIN addresses ON persons.id = addresses.personId";
     $result = $conn->query($sql);
     $persons = array();
     if ($result->num_rows > 0){
         while ($row = $result->fetch_assoc()){
-            $persons[] = $row;
+            $personId = $row['id'];
+            if (!isset($persons[$personId])) {
+                $persons[$personId] = [
+                    'id' => $row['id'],
+                    'salutation' => $row['salutation'],
+                    'firstname' => $row['firstname'],
+                    'lastname' => $row['lastname'],
+                    'email' => $row['email'],
+                    'mobile_number' => $row['mobile_number'],
+                    'phone_number' => $row['phone_number'],
+                    'homepage' => $row['homepage'],
+                    'addresses' => []
+                ];
+            }
+            $persons[$personId]['addresses'][] = [
+                'id' => $row['address_id'],
+                'street' => $row['street'],
+                'house_number' => $row['house_number'],
+                'postal_code' => $row['postal_code'],
+                'city' => $row['city']
+            ];
         }
     }
     close_connection($conn);
-    return $persons;
+    return array_values($persons);
 }
 
 function getSpecificPerson($person_id) {
@@ -98,25 +120,13 @@ function getSpecificPerson($person_id) {
     return $person;
 }
 
-function updatePerson($personId, $salutation, $firstname, $lastname, $email, $mobile_number, $phone_number, $homepage, $street, $house_number, $postal_code, $city) {
-    try {
-        $conn = getConnection();
-        
-        $sql = "UPDATE persons SET salutation = ?, firstname = ?, lastname = ?, email = ?, mobile_number = ?, phone_number = ?, homepage = ? WHERE id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssssssi", $salutation, $firstname, $lastname, $email, $mobile_number, $phone_number, $homepage, $personId);
-        $stmt->execute();
-        
-        $sql = "UPDATE addresses SET street = ?, house_number = ?, postal_code = ?, city = ? WHERE personId = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssssi", $street, $house_number, $postal_code, $city, $personId);
-        $stmt->execute();
-    } catch (Exception $e) {
-        error_log("Error: " . $e->getMessage());
-        throw $e;
-    } finally {
-        close_connection($conn);
-    }
+function updatePerson($personId, $salutation, $firstname, $lastname, $email, $mobile_number, $phone_number, $homepage) {
+    $conn = getConnection();
+    $sql = "UPDATE persons SET salutation = ?, firstname = ?, lastname = ?, email = ?, mobile_number = ?, phone_number = ?, homepage = ? WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sssssssi", $salutation, $firstname, $lastname, $email, $mobile_number, $phone_number, $homepage, $personId);
+    $stmt->execute();
+    close_connection($conn);
 }
 
 function deletePerson($person_id) {
@@ -178,19 +188,28 @@ function searchPerson($searchedPerson, $sortOrder){
     return $persons;
 }
 
-function getAdresses(){
+function getAddressesByPersonId($person_id) {
     $conn = getConnection();
-    $sql = "SELECT * FROM addresses WHERE id = ?";
+    $sql = "SELECT * FROM addresses WHERE personId = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $personId);
+    $stmt->bind_param("i", $person_id);
     $stmt->execute();
     $result = $stmt->get_result();
     $addresses = array();
-    if ($result->num_rows > 0){
-        while ($row = $result->fetch_assoc()){
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
             $addresses[] = $row;
         }
     }
     close_connection($conn);
     return $addresses;
+}
+
+function updateAddress($addressId, $street, $house_number, $postal_code, $city) {
+    $conn = getConnection();
+    $sql = "UPDATE addresses SET street = ?, house_number = ?, postal_code = ?, city = ? WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssssi", $street, $house_number, $postal_code, $city, $addressId);
+    $stmt->execute();
+    close_connection($conn);
 }
