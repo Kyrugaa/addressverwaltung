@@ -3,7 +3,7 @@ session_start();
 
 require_once 'includes/dbhandler.php';
 
-if($_SERVER['REQUEST_METHOD'] == 'POST'){
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $personId = $_POST['personId'];
     $salutation = $_POST['salutation'];
     $firstname = $_POST['firstname'];
@@ -32,7 +32,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     exit();
 }
 
-if(!isset($_GET['id'])){
+if (!isset($_GET['id'])) {
     header("Location: index.php");
     exit();
 }

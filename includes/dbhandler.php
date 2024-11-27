@@ -64,7 +64,7 @@ function getPersons(){
     $conn = getConnection();
     $sql = "SELECT persons.*, addresses.id as address_id, addresses.street, addresses.house_number, addresses.postal_code, addresses.city 
             FROM persons 
-            INNER JOIN addresses ON persons.id = addresses.personId";
+            LEFT JOIN addresses ON persons.id = addresses.personId";
     $result = $conn->query($sql);
     $persons = array();
     if ($result->num_rows > 0){
@@ -83,38 +83,28 @@ function getPersons(){
                     'addresses' => []
                 ];
             }
-            $persons[$personId]['addresses'][] = [
-                'id' => $row['address_id'],
-                'street' => $row['street'],
-                'house_number' => $row['house_number'],
-                'postal_code' => $row['postal_code'],
-                'city' => $row['city']
-            ];
+            if ($row['address_id']) {
+                $persons[$personId]['addresses'][] = [
+                    'id' => $row['address_id'],
+                    'street' => $row['street'],
+                    'house_number' => $row['house_number'],
+                    'postal_code' => $row['postal_code'],
+                    'city' => $row['city']
+                ];
+            }
         }
     }
     close_connection($conn);
     return array_values($persons);
 }
 
-function getSpecificPerson($person_id) {
+function getSpecificPerson($personId) {
     $conn = getConnection();
-    if ($conn->connect_error) {
-        die("Connection failed: " . $conn->connect_error);
-    }
-
-    $sql = "SELECT * FROM persons INNER JOIN addresses ON persons.id = addresses.personId WHERE persons.id = ?";
+    $sql = "SELECT * FROM persons WHERE id = ?";
     $stmt = $conn->prepare($sql);
-    if (!$stmt) {
-        die("Prepare failed: " . $conn->error);
-    }
-
-    $stmt->bind_param("i", $person_id);
+    $stmt->bind_param("i", $personId);
     $stmt->execute();
     $result = $stmt->get_result();
-    if ($result->num_rows === 0) {
-        return null;
-    }
-
     $person = $result->fetch_assoc();
     close_connection($conn);
     return $person;
@@ -168,9 +158,9 @@ function searchPerson($searchedPerson, $sortOrder){
             break;
     }
 
-    $sql = "SELECT persons.*, addresses.* 
+    $sql = "SELECT persons.*, addresses.id as address_id, addresses.street, addresses.house_number, addresses.postal_code, addresses.city 
             FROM persons 
-            INNER JOIN addresses ON persons.id = addresses.personId 
+            LEFT JOIN addresses ON persons.id = addresses.personId 
             WHERE persons.firstname LIKE ? 
             ORDER BY $orderBy";
     $stmt = $conn->prepare($sql);
@@ -181,25 +171,45 @@ function searchPerson($searchedPerson, $sortOrder){
     $persons = array();
     if ($result->num_rows > 0){
         while ($row = $result->fetch_assoc()){
-            $persons[] = $row;
+            $personId = $row['id'];
+            if (!isset($persons[$personId])) {
+                $persons[$personId] = [
+                    'id' => $row['id'],
+                    'salutation' => $row['salutation'],
+                    'firstname' => $row['firstname'],
+                    'lastname' => $row['lastname'],
+                    'email' => $row['email'],
+                    'mobile_number' => $row['mobile_number'],
+                    'phone_number' => $row['phone_number'],
+                    'homepage' => $row['homepage'],
+                    'addresses' => []
+                ];
+            }
+            if ($row['address_id']) {
+                $persons[$personId]['addresses'][] = [
+                    'id' => $row['address_id'],
+                    'street' => $row['street'],
+                    'house_number' => $row['house_number'],
+                    'postal_code' => $row['postal_code'],
+                    'city' => $row['city']
+                ];
+            }
         }
     }
     close_connection($conn);
-    return $persons;
+    return array_values($persons);
 }
 
-function getAddressesByPersonId($person_id) {
+function getAddressesByPersonId($personId) {
     $conn = getConnection();
     $sql = "SELECT * FROM addresses WHERE personId = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $person_id);
+    $stmt->bind_param("i", $personId);
     $stmt->execute();
     $result = $stmt->get_result();
     $addresses = array();
-    if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            $addresses[] = $row;
-        }
+    while ($row = $result->fetch_assoc()) {
+        $addresses[] = $row;
     }
     close_connection($conn);
     return $addresses;
