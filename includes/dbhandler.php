@@ -61,62 +61,81 @@ function safePerson($salutation, $firstname, $lastname, $email, $mobile_number, 
 }
 
 function getPersons(){
-    $conn = getConnection();
-    $sql = "SELECT persons.*, addresses.id as address_id, addresses.street, addresses.house_number, addresses.postal_code, addresses.city 
-            FROM persons 
-            LEFT JOIN addresses ON persons.id = addresses.personId";
-    $result = $conn->query($sql);
-    $persons = array();
-    if ($result->num_rows > 0){
-        while ($row = $result->fetch_assoc()){
-            $personId = $row['id'];
-            if (!isset($persons[$personId])) {
-                $persons[$personId] = [
-                    'id' => $row['id'],
-                    'salutation' => $row['salutation'],
-                    'firstname' => $row['firstname'],
-                    'lastname' => $row['lastname'],
-                    'email' => $row['email'],
-                    'mobile_number' => $row['mobile_number'],
-                    'phone_number' => $row['phone_number'],
-                    'homepage' => $row['homepage'],
-                    'addresses' => []
-                ];
-            }
-            if ($row['address_id']) {
-                $persons[$personId]['addresses'][] = [
-                    'id' => $row['address_id'],
-                    'street' => $row['street'],
-                    'house_number' => $row['house_number'],
-                    'postal_code' => $row['postal_code'],
-                    'city' => $row['city']
-                ];
+    try{
+        $conn = getConnection();
+        $sql = "SELECT persons.*, addresses.id as address_id, addresses.street, addresses.house_number, addresses.postal_code, addresses.city 
+                FROM persons 
+                LEFT JOIN addresses ON persons.id = addresses.personId";
+        $result = $conn->query($sql);
+        $persons = array();
+        if ($result->num_rows > 0){
+            while ($row = $result->fetch_assoc()){
+                $personId = $row['id'];
+                if (!isset($persons[$personId])) {
+                    $persons[$personId] = [
+                        'id' => $row['id'],
+                        'salutation' => $row['salutation'],
+                        'firstname' => $row['firstname'],
+                        'lastname' => $row['lastname'],
+                        'email' => $row['email'],
+                        'mobile_number' => $row['mobile_number'],
+                        'phone_number' => $row['phone_number'],
+                        'homepage' => $row['homepage'],
+                        'addresses' => []
+                    ];
+                }
+                if ($row['address_id']) {
+                    $persons[$personId]['addresses'][] = [
+                        'id' => $row['address_id'],
+                        'street' => $row['street'],
+                        'house_number' => $row['house_number'],
+                        'postal_code' => $row['postal_code'],
+                        'city' => $row['city']
+                    ];
+                }
             }
         }
+    }catch (Exception $e){
+        error_log("Error: " . $e->getMessage());
+        throw $e;
+    } finally {
+        close_connection($conn);
+        return array_values($persons);
     }
-    close_connection($conn);
-    return array_values($persons);
 }
 
 function getSpecificPerson($personId) {
-    $conn = getConnection();
-    $sql = "SELECT * FROM persons WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $personId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $person = $result->fetch_assoc();
-    close_connection($conn);
-    return $person;
+    try{
+        $conn = getConnection();
+        $sql = "SELECT * FROM persons WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $personId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $person = $result->fetch_assoc();
+    }catch (Exception $e){
+        error_log("Error: " . $e->getMessage());
+        throw $e;
+    } finally {
+        close_connection($conn);
+        return $person;
+    }
+
 }
 
 function updatePerson($personId, $salutation, $firstname, $lastname, $email, $mobile_number, $phone_number, $homepage) {
-    $conn = getConnection();
-    $sql = "UPDATE persons SET salutation = ?, firstname = ?, lastname = ?, email = ?, mobile_number = ?, phone_number = ?, homepage = ? WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssssssi", $salutation, $firstname, $lastname, $email, $mobile_number, $phone_number, $homepage, $personId);
-    $stmt->execute();
-    close_connection($conn);
+    try{
+        $conn = getConnection();
+        $sql = "UPDATE persons SET salutation = ?, firstname = ?, lastname = ?, email = ?, mobile_number = ?, phone_number = ?, homepage = ? WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("sssssssi", $salutation, $firstname, $lastname, $email, $mobile_number, $phone_number, $homepage, $personId);
+        $stmt->execute();
+    }catch (Exception $e){
+        error_log("Error: " . $e->getMessage());
+        throw $e;
+    } finally {
+        close_connection($conn);
+    }
 }
 
 function deletePerson($person_id) {
@@ -143,83 +162,103 @@ function deletePerson($person_id) {
 }
 
 function searchPerson($searchedPerson, $sortOrder){
-    $conn = getConnection();
+    try{
+        $conn = getConnection();
 
-    $orderBy = "firstname ASC";
-    switch ($sortOrder) {
-        case 'firstname_desc':
-            $orderBy = "firstname DESC";
-            break;
-        case 'lastname_asc':
-            $orderBy = "lastname ASC";
-            break;
-        case 'lastname_desc':
-            $orderBy = "lastname DESC";
-            break;
-    }
+        $orderBy = "firstname ASC";
+        switch ($sortOrder) {
+            case 'firstname_desc':
+                $orderBy = "firstname DESC";
+                break;
+            case 'lastname_asc':
+                $orderBy = "lastname ASC";
+                break;
+            case 'lastname_desc':
+                $orderBy = "lastname DESC";
+                break;
+        }
 
-    $sql = "SELECT persons.*, addresses.id as address_id, addresses.street, addresses.house_number, addresses.postal_code, addresses.city 
-            FROM persons 
-            LEFT JOIN addresses ON persons.id = addresses.personId 
-            WHERE persons.firstname LIKE ? 
-            ORDER BY $orderBy";
-    $stmt = $conn->prepare($sql);
-    $searchTerm = "%$searchedPerson%";
-    $stmt->bind_param("s", $searchTerm);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $persons = array();
-    if ($result->num_rows > 0){
-        while ($row = $result->fetch_assoc()){
-            $personId = $row['id'];
-            if (!isset($persons[$personId])) {
-                $persons[$personId] = [
-                    'id' => $row['id'],
-                    'salutation' => $row['salutation'],
-                    'firstname' => $row['firstname'],
-                    'lastname' => $row['lastname'],
-                    'email' => $row['email'],
-                    'mobile_number' => $row['mobile_number'],
-                    'phone_number' => $row['phone_number'],
-                    'homepage' => $row['homepage'],
-                    'addresses' => []
-                ];
-            }
-            if ($row['address_id']) {
-                $persons[$personId]['addresses'][] = [
-                    'id' => $row['address_id'],
-                    'street' => $row['street'],
-                    'house_number' => $row['house_number'],
-                    'postal_code' => $row['postal_code'],
-                    'city' => $row['city']
-                ];
+        $sql = "SELECT persons.*, addresses.id as address_id, addresses.street, addresses.house_number, addresses.postal_code, addresses.city 
+                FROM persons 
+                LEFT JOIN addresses ON persons.id = addresses.personId 
+                WHERE persons.firstname LIKE ? 
+                ORDER BY $orderBy";
+        $stmt = $conn->prepare($sql);
+        $searchTerm = "%$searchedPerson%";
+        $stmt->bind_param("s", $searchTerm);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $persons = array();
+        if ($result->num_rows > 0){
+            while ($row = $result->fetch_assoc()){
+                $personId = $row['id'];
+                if (!isset($persons[$personId])) {
+                    $persons[$personId] = [
+                        'id' => $row['id'],
+                        'salutation' => $row['salutation'],
+                        'firstname' => $row['firstname'],
+                        'lastname' => $row['lastname'],
+                        'email' => $row['email'],
+                        'mobile_number' => $row['mobile_number'],
+                        'phone_number' => $row['phone_number'],
+                        'homepage' => $row['homepage'],
+                        'addresses' => []
+                    ];
+                }
+                if ($row['address_id']) {
+                    $persons[$personId]['addresses'][] = [
+                        'id' => $row['address_id'],
+                        'street' => $row['street'],
+                        'house_number' => $row['house_number'],
+                        'postal_code' => $row['postal_code'],
+                        'city' => $row['city']
+                    ];
+                }
             }
         }
+    }catch (Exception $e){
+        error_log("Error: " . $e->getMessage());
+        throw $e;
+    } finally {
+        close_connection($conn);
+        return array_values($persons);
     }
-    close_connection($conn);
-    return array_values($persons);
 }
 
 function getAddressesByPersonId($personId) {
-    $conn = getConnection();
-    $sql = "SELECT * FROM addresses WHERE personId = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $personId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $addresses = array();
-    while ($row = $result->fetch_assoc()) {
-        $addresses[] = $row;
+    try{
+        $conn = getConnection();
+        $sql = "SELECT * FROM addresses WHERE personId = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $personId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $addresses = array();
+        while ($row = $result->fetch_assoc()) {
+            $addresses[] = $row;
+        }
+    }catch (Exception $e){
+        error_log("Error: " . $e->getMessage());
+        throw $e;
+    } finally {
+        close_connection($conn);
+        return $addresses;
     }
-    close_connection($conn);
-    return $addresses;
+
 }
 
 function updateAddress($addressId, $street, $house_number, $postal_code, $city) {
-    $conn = getConnection();
-    $sql = "UPDATE addresses SET street = ?, house_number = ?, postal_code = ?, city = ? WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssi", $street, $house_number, $postal_code, $city, $addressId);
-    $stmt->execute();
-    close_connection($conn);
+    try{
+        $conn = getConnection();
+        $sql = "UPDATE addresses SET street = ?, house_number = ?, postal_code = ?, city = ? WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ssssi", $street, $house_number, $postal_code, $city, $addressId);
+        $stmt->execute();
+    }catch (Exception $e){
+        error_log("Error: " . $e->getMessage());
+        throw $e;
+    } finally {
+        close_connection($conn);
+    }
+
 }
